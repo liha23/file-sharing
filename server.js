@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const archiver = require('archiver');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,6 +14,23 @@ const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
+
+// Rate limiting configuration (generous limits for local network use)
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 100, // 100 requests per minute per IP
+  message: { error: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute  
+  max: 30, // 30 uploads per minute per IP
+  message: { error: 'Too many uploads, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Ensure uploads directory exists
 if (!fs.existsSync(UPLOADS_DIR)) {
@@ -98,7 +116,7 @@ function getFileInfo(filename) {
 }
 
 // API: Get server info
-app.get('/api/info', (req, res) => {
+app.get('/api/info', apiLimiter, (req, res) => {
   const localIP = getLocalIP();
   res.json({
     ip: localIP,
@@ -109,7 +127,7 @@ app.get('/api/info', (req, res) => {
 });
 
 // API: List all files
-app.get('/api/files', (req, res) => {
+app.get('/api/files', apiLimiter, (req, res) => {
   try {
     const files = fs.readdirSync(UPLOADS_DIR)
       .filter(f => !f.startsWith('.'))
@@ -123,7 +141,7 @@ app.get('/api/files', (req, res) => {
 });
 
 // API: Upload file(s)
-app.post('/api/upload', upload.array('files', 50), (req, res) => {
+app.post('/api/upload', uploadLimiter, upload.array('files', 50), (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ error: 'No files uploaded' });
   }
@@ -150,7 +168,7 @@ function isValidFilePath(filename) {
 }
 
 // API: Delete file
-app.delete('/api/files/:filename', (req, res) => {
+app.delete('/api/files/:filename', apiLimiter, (req, res) => {
   const filename = decodeURIComponent(req.params.filename);
   
   // Security: Prevent path traversal
@@ -174,7 +192,7 @@ app.delete('/api/files/:filename', (req, res) => {
 });
 
 // API: Download all files as ZIP
-app.get('/api/download-all', (req, res) => {
+app.get('/api/download-all', apiLimiter, (req, res) => {
   const files = fs.readdirSync(UPLOADS_DIR).filter(f => !f.startsWith('.'));
   
   if (files.length === 0) {
@@ -211,7 +229,7 @@ app.get('/api/download-all', (req, res) => {
 });
 
 // API: Get file content (for text preview)
-app.get('/api/files/:filename/content', (req, res) => {
+app.get('/api/files/:filename/content', apiLimiter, (req, res) => {
   const filename = decodeURIComponent(req.params.filename);
   
   // Security: Prevent path traversal

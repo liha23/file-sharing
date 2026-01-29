@@ -1,0 +1,24 @@
+{
+  "name": "localdrop",
+  "version": "1.0.0",
+  "description": "Cross-platform local network file sharing web app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "file-sharing",
+    "local-network",
+    "peer-to-peer",
+    "qr-code"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "archiver": "^6.0.1",
+    "express": "^4.18.2",
+    "multer": "^2.0.2",
+    "socket.io": "^4.7.2"
+  }
+}

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalDrop - Instant Local File Sharing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="bg-gradient"></div>
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header glass-panel">
+      <div class="logo">
+        <span class="logo-icon">✦</span>
+        <span class="logo-text">LocalDrop</span>
+      </div>
+      <div class="header-right">
+        <button class="theme-toggle" id="themeToggle" aria-label="Switch to light mode" title="Toggle theme">
+          <span class="theme-icon" aria-hidden="true">🌙</span>
+        </button>
+        <div class="connection-status" id="connectionStatus" role="status" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="status-text">Connected: <span id="clientCount">1</span></span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Drop Zone -->
+      <div class="drop-zone glass-panel" id="dropZone" role="button" tabindex="0" aria-label="File upload area. Drop files here or press Enter to browse files.">
+        <div class="drop-zone-content">
+          <div class="drop-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <h2 class="drop-title">Drop files here or click to browse</h2>
+          <p class="drop-subtitle" id="dropZoneDescription">Supports any file type • Max 500MB per file</p>
+          <input type="file" id="fileInput" multiple hidden aria-describedby="dropZoneDescription">
+          <button class="browse-btn" id="browseBtn" aria-label="Browse files to upload">
+            <span>Browse Files</span>
+          </button>
+        </div>
+        <div class="drop-zone-active" aria-hidden="true">
+          <div class="drop-active-icon">📥</div>
+          <span>Release to upload</span>
+        </div>
+      </div>
+
+      <!-- Upload Progress -->
+      <div class="upload-progress glass-panel" id="uploadProgress" style="display: none;">
+        <div class="progress-header">
+          <span class="progress-title">Uploading...</span>
+          <span class="progress-percent" id="progressPercent">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <!-- File Actions -->
+      <div class="file-actions" id="fileActions" style="display: none;">
+        <span class="file-count" id="fileCount">0 files</span>
+        <div class="action-buttons">
+          <button class="action-btn download-all-btn" id="downloadAllBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span>Download All (ZIP)</span>
+          </button>
+          <button class="action-btn delete-all-btn" id="deleteAllBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+            <span>Delete All</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Files Grid -->
+      <div class="files-grid" id="filesGrid">
+        <!-- Files will be inserted here -->
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">📁</div>
+        <h3>No files yet</h3>
+        <p>Upload some files to share them across devices</p>
+      </div>
+    </main>
+
+    <!-- Footer with QR Code -->
+    <footer class="footer glass-panel">
+      <div class="qr-section">
+        <div class="qr-code" id="qrCode"></div>
+        <span class="qr-label">Scan to connect</span>
+      </div>
+      <div class="url-section">
+        <p class="url-label">Or visit this URL from any device:</p>
+        <div class="url-box">
+          <span class="url-text" id="shareUrl">Loading...</span>
+          <button class="copy-btn" id="copyBtn" title="Copy URL">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- File Preview Modal -->
+  <div class="modal-overlay" id="previewModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-content glass-panel">
+      <button class="modal-close" id="modalClose" aria-label="Close preview">×</button>
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">File Preview</h3>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Preview content inserted here -->
+      </div>
+      <div class="modal-footer">
+        <a class="modal-download-btn" id="modalDownload" download aria-label="Download file">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" role="alert" aria-live="polite"></div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="confirm-modal-overlay" id="confirmModal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+    <div class="confirm-modal glass-panel">
+      <div class="confirm-icon" aria-hidden="true">⚠️</div>
+      <h3 class="confirm-title" id="confirmTitle">Delete File?</h3>
+      <p class="confirm-message" id="confirmMessage">This action cannot be undone.</p>
+      <div class="confirm-buttons">
+        <button class="confirm-btn cancel-btn" id="confirmCancel">Cancel</button>
+        <button class="confirm-btn delete-btn" id="confirmDelete">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

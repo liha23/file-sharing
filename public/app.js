@@ -201,6 +201,10 @@ function initTheme() {
 function updateThemeIcon() {
   const icon = elements.themeToggle.querySelector('.theme-icon');
   icon.textContent = state.theme === 'dark' ? '🌙' : '☀️';
+  // Update aria-label for accessibility
+  elements.themeToggle.setAttribute('aria-label', 
+    state.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
+  );
 }
 
 function toggleTheme() {
@@ -590,6 +594,14 @@ function initDragDrop() {
     elements.fileInput.click();
   });
   
+  // Keyboard support for drop zone
+  elements.dropZone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      elements.fileInput.click();
+    }
+  });
+  
   elements.browseBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     elements.fileInput.click();
@@ -614,18 +626,25 @@ function initEventListeners() {
   
   // Copy URL
   elements.copyBtn.addEventListener('click', async () => {
+    const url = elements.shareUrl.textContent;
     try {
-      await navigator.clipboard.writeText(elements.shareUrl.textContent);
+      await navigator.clipboard.writeText(url);
       showToast('URL copied to clipboard!', 'success');
     } catch {
       // Fallback for older browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = elements.shareUrl.textContent;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      showToast('URL copied to clipboard!', 'success');
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast('URL copied to clipboard!', 'success');
+      } catch {
+        showToast('Failed to copy. Please copy manually: ' + url, 'error');
+      }
     }
   });
   

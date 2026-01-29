@@ -27,11 +27,11 @@
         <span class="logo-text">LocalDrop</span>
       </div>
       <div class="header-right">
-        <button class="theme-toggle" id="themeToggle" title="Toggle theme">
-          <span class="theme-icon">🌙</span>
+        <button class="theme-toggle" id="themeToggle" aria-label="Switch to light mode" title="Toggle theme">
+          <span class="theme-icon" aria-hidden="true">🌙</span>
         </button>
-        <div class="connection-status" id="connectionStatus">
-          <span class="status-dot"></span>
+        <div class="connection-status" id="connectionStatus" role="status" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span>
           <span class="status-text">Connected: <span id="clientCount">1</span></span>
         </div>
       </div>
@@ -40,9 +40,9 @@
     <!-- Main Content -->
     <main class="main-content">
       <!-- Drop Zone -->
-      <div class="drop-zone glass-panel" id="dropZone">
+      <div class="drop-zone glass-panel" id="dropZone" role="button" tabindex="0" aria-label="File upload area. Drop files here or press Enter to browse files.">
         <div class="drop-zone-content">
-          <div class="drop-icon">
+          <div class="drop-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="17 8 12 3 7 8"/>
@@ -50,13 +50,13 @@
             </svg>
           </div>
           <h2 class="drop-title">Drop files here or click to browse</h2>
-          <p class="drop-subtitle">Supports any file type • Max 500MB per file</p>
-          <input type="file" id="fileInput" multiple hidden>
-          <button class="browse-btn" id="browseBtn">
+          <p class="drop-subtitle" id="dropZoneDescription">Supports any file type • Max 500MB per file</p>
+          <input type="file" id="fileInput" multiple hidden aria-describedby="dropZoneDescription">
+          <button class="browse-btn" id="browseBtn" aria-label="Browse files to upload">
             <span>Browse Files</span>
           </button>
         </div>
-        <div class="drop-zone-active">
+        <div class="drop-zone-active" aria-hidden="true">
           <div class="drop-active-icon">📥</div>
           <span>Release to upload</span>
         </div>
@@ -130,9 +130,9 @@
   </div>
 
   <!-- File Preview Modal -->
-  <div class="modal-overlay" id="previewModal">
+  <div class="modal-overlay" id="previewModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-content glass-panel">
-      <button class="modal-close" id="modalClose">×</button>
+      <button class="modal-close" id="modalClose" aria-label="Close preview">×</button>
       <div class="modal-header">
         <h3 class="modal-title" id="modalTitle">File Preview</h3>
       </div>
@@ -140,8 +140,8 @@
         <!-- Preview content inserted here -->
       </div>
       <div class="modal-footer">
-        <a class="modal-download-btn" id="modalDownload" download>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <a class="modal-download-btn" id="modalDownload" download aria-label="Download file">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
             <polyline points="7 10 12 15 17 10"/>
             <line x1="12" y1="15" x2="12" y2="3"/>
@@ -153,12 +153,12 @@
   </div>
 
   <!-- Toast Container -->
-  <div class="toast-container" id="toastContainer"></div>
+  <div class="toast-container" id="toastContainer" role="alert" aria-live="polite"></div>
 
   <!-- Delete Confirmation Modal -->
-  <div class="confirm-modal-overlay" id="confirmModal">
+  <div class="confirm-modal-overlay" id="confirmModal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
     <div class="confirm-modal glass-panel">
-      <div class="confirm-icon">⚠️</div>
+      <div class="confirm-icon" aria-hidden="true">⚠️</div>
       <h3 class="confirm-title" id="confirmTitle">Delete File?</h3>
       <p class="confirm-message" id="confirmMessage">This action cannot be undone.</p>
       <div class="confirm-buttons">

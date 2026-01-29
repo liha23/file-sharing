@@ -77,13 +77,15 @@ function getFileInfo(filename) {
     else if (codeExts.includes(ext) || ext === '.txt') type = 'code';
     else if (archiveExts.includes(ext)) type = 'archive';
     
-    // Extract original name from stored filename
-    const originalName = filename.replace(/-\d+-\d+(\.[^.]+)?$/, '$1') || filename;
+    // Extract display name from stored filename (removes timestamp suffix)
+    // Format: originalname-timestamp-random.ext -> originalname.ext
+    const nameWithoutExt = path.basename(filename, ext);
+    const displayName = nameWithoutExt.replace(/-\d+-\d+$/, '') + ext;
     
     return {
       filename: filename,
-      originalName: originalName,
-      displayName: filename.replace(/-\d+-\d+(\.[^.]+)?$/, '$1'),
+      originalName: displayName,
+      displayName: displayName,
       size: stats.size,
       type: type,
       extension: ext,
@@ -136,15 +138,27 @@ app.post('/api/upload', upload.array('files', 50), (req, res) => {
   res.json({ success: true, files: uploadedFiles });
 });
 
+// Helper: Validate file path to prevent path traversal
+function isValidFilePath(filename) {
+  // Sanitize filename - only allow alphanumeric, dash, underscore, dot
+  const sanitized = path.basename(filename);
+  if (sanitized !== filename || filename.includes('..')) {
+    return false;
+  }
+  const filepath = path.normalize(path.join(UPLOADS_DIR, filename));
+  return filepath.startsWith(UPLOADS_DIR + path.sep) || filepath === path.join(UPLOADS_DIR, filename);
+}
+
 // API: Delete file
 app.delete('/api/files/:filename', (req, res) => {
   const filename = decodeURIComponent(req.params.filename);
-  const filepath = path.join(UPLOADS_DIR, filename);
   
   // Security: Prevent path traversal
-  if (!filepath.startsWith(UPLOADS_DIR)) {
+  if (!isValidFilePath(filename)) {
     return res.status(403).json({ error: 'Invalid file path' });
   }
+  
+  const filepath = path.join(UPLOADS_DIR, filename);
   
   try {
     if (fs.existsSync(filepath)) {
@@ -171,29 +185,53 @@ app.get('/api/download-all', (req, res) => {
   res.setHeader('Content-Disposition', 'attachment; filename=LocalDrop-files.zip');
   
   const archive = archiver('zip', { zlib: { level: 5 } });
+  
+  // Handle archive errors
+  archive.on('error', (err) => {
+    console.error('Archive error:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Failed to create archive' });
+    }
+  });
+  
   archive.pipe(res);
   
   files.forEach(filename => {
     const filepath = path.join(UPLOADS_DIR, filename);
-    // Use original-like name in ZIP
-    const displayName = filename.replace(/-\d+-\d+(\.[^.]+)?$/, '$1');
-    archive.file(filepath, { name: displayName });
+    // Check file exists before adding
+    if (fs.existsSync(filepath)) {
+      const ext = path.extname(filename);
+      const nameWithoutExt = path.basename(filename, ext);
+      const displayName = nameWithoutExt.replace(/-\d+-\d+$/, '') + ext;
+      archive.file(filepath, { name: displayName });
+    }
   });
   
   archive.finalize();
 });
 
-// API: Get file content (for preview)
+// API: Get file content (for text preview)
 app.get('/api/files/:filename/content', (req, res) => {
   const filename = decodeURIComponent(req.params.filename);
-  const filepath = path.join(UPLOADS_DIR, filename);
   
   // Security: Prevent path traversal
-  if (!filepath.startsWith(UPLOADS_DIR)) {
+  if (!isValidFilePath(filename)) {
     return res.status(403).json({ error: 'Invalid file path' });
   }
   
+  const filepath = path.join(UPLOADS_DIR, filename);
+  const ext = path.extname(filename).toLowerCase();
+  
+  // Only allow text-based file previews
+  const textExts = ['.txt', '.js', '.ts', '.py', '.java', '.c', '.cpp', '.h', '.css', '.html', '.json', '.xml', '.md', '.yaml', '.yml', '.sh', '.rb', '.go', '.rs', '.php', '.log', '.conf', '.ini'];
+  if (!textExts.includes(ext)) {
+    return res.status(400).json({ error: 'File type not supported for text preview' });
+  }
+  
   try {
+    if (!fs.existsSync(filepath)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
     const content = fs.readFileSync(filepath, 'utf-8');
     res.json({ content: content.substring(0, 50000) }); // Limit to 50KB for preview
   } catch (err) {
